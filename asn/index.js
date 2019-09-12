@@ -1,19 +1,27 @@
 const mainPanel = document.getElementById("main_area")
 const statsPanel = document.getElementById("stats_area")
+const playPanelCharSelect = document.getElementById("play_area")
 const playPanelStart = document.getElementById("play_area")
 const playPanel = document.getElementById("play_area")
 const messagePanel = document.getElementById("message_panel")
 
 playPanel.addEventListener("click",createChar)
 playPanelStart.addEventListener("click", startChoices)
+playPanelCharSelect.addEventListener("click", selectChar)
 
 var stats = [0,0,0,0,0,0,0,0]
 var tempStyle = [0,0,0,0]
 var tempRace = [0,0,0,0]
 var tempProf = [0,0,0,0]
 
+const headersObj = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+  }
+
 document.addEventListener('DOMContentLoaded', function(){
-	startScreen()
+	test()
+	//startScreen()
 }, false);
 
 //CHOICES SCREEN START
@@ -101,7 +109,8 @@ function createChar(e){
 		case "submit":
 			let total = stats[4]+stats[5]+stats[6]+stats[7]
 			if(stats[0]!=0 && total == 15){
-				console.log("posted to db")
+				submitCharToDB()
+				dungeonArea()
 				//postToDB()
 			}else{
 				alert("You appear to be missing something")
@@ -153,9 +162,29 @@ function createChar(e){
 			break;
 		case "assassin":
 			stats[3] = "Assassin"
-			tempProf = [2,4,0,0]
+			tempProf = [1,4,0,0]
 			setMetrics()
 			break;		
+	}
+
+	function submitCharToDB(){
+		console.log("charSubmit")
+		let charObj = {
+			name: stats[0],
+			style: stats[1],
+			race: stats[2],
+			prof: stats[3],
+			str: stats[4],
+			dex: stats[5],
+			fort: stats[6],
+			wis: stats[7]
+		}
+
+		fetch("http://localhost:3000/characters",{
+			method: "POST",
+			headers: headersObj,
+			body: JSON.stringify(charObj)			
+		})
 	}
 
 	function setMetrics(){
@@ -175,5 +204,48 @@ function createChar(e){
 //DISPLAY CHARS LIST START
 function displayList(){
 	playPanel.innerHTML = " "
+	fetch("http://localhost:3000/characters")
+	.then(res => res.json())
+	.then(charArray => charArray.forEach(char =>{
+		playPanelCharSelect.innerHTML += `<h2 id=${char.id} style='margin-left: 24px;'>${char.id}.${char.name}</h2'><h4 style='margin-left: 24px;'>${char.style} ${char.race} ${char.prof}</h4>`
+	}))
+	console.log("In displayList")
 }
 //DISPLAY CHARS LIST END
+
+//DUNGEON AREA START
+//This is where the dungeon area and major play mechanics will happen
+function dungeonArea(){
+	playPanel.innerHTML = " "
+}
+//DUNGEON AREA END
+
+//SELECT CHAR SCREEN START
+//This will be used to grab any given char from the db and use them to play
+function selectChar(e){
+	let charChosen = 0
+	let cond = e.target.id
+
+	charChosen = cond
+
+	if(charChosen > 0){
+		playPanel.innerHTML = ""
+		fetch("http://localhost:3000/characters")
+		.then(res => res.json())
+		.then(findChar => findChar.forEach(char=>{
+			if(char["id"] == cond){
+				stats[0] = char["name"]
+				stats[1] = char["style"]
+				stats[2] = char["race"]
+				stats[3] = char["prof"]
+				stats[4] = char["str"]
+				stats[5] = char["dex"]
+				stats[6] = char["fort"]
+				stats[7] = char["wis"]
+				setStats();
+			}
+		}))
+		//setStats();
+	}
+}
+//SELECT CHAAR SCREEN END
