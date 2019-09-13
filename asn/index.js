@@ -4,10 +4,12 @@ const playPanelCharSelect = document.getElementById("play_area")
 const playPanelStart = document.getElementById("play_area")
 const playPanel = document.getElementById("play_area")
 const messagePanel = document.getElementById("message_panel")
+const dungeonPanel = document.getElementById("play_area")
 
 playPanel.addEventListener("click",createChar)
 playPanelStart.addEventListener("click", startChoices)
 playPanelCharSelect.addEventListener("click", selectChar)
+dungeonPanel.addEventListener("keydown", toonMovement)
 
 var stats = [0,0,0,0,0,0,0,0]
 var tempStyle = [0,0,0,0]
@@ -20,8 +22,7 @@ const headersObj = {
   }
 
 document.addEventListener('DOMContentLoaded', function(){
-	test()
-	//startScreen()
+	startScreen()
 }, false);
 
 //CHOICES SCREEN START
@@ -31,6 +32,8 @@ function startScreen(){
 	playPanelStart.innerHTML += listChar
 	let buildNewChar = "<h1 id='build'>Click Here To Build A New Character</h1>"
 	playPanelStart.innerHTML += buildNewChar
+	let createAccount = "<h1 id='account'>Click Here To Create A New Account</h1>"
+	playPanelStart.innerHTML += createAccount
 }
 
 function startChoices(e){
@@ -45,7 +48,48 @@ function startChoices(e){
 			playPanel.innerHTML = " "
 			displayList()
 			break;
+		case "account":
+			playPanel.innerHTML = " "
+			createAccountArea()
+			break;
+		case "createAcctBtn":
+			postUserToDB()
+			playPanel.innerHTML = " "
+			buildChar()
+			break;
 	}
+
+	function createAccountArea(){
+		let item1 = "<h4 style='margin-left: 12px'>Select username</4e>"
+		playPanel.innerHTML += item1
+		let createUsername= "<input id='username' style='margin:12px;' type='text' name='Username'>"
+		playPanel.innerHTML += createUsername
+		let item2 = "<h4 style='margin-left: 12px'>Select username</4e>"
+		playPanel.innerHTML += item2
+		let createPassword= "<input id='password' style='margin:12px;' type='text'>"
+		playPanel.innerHTML += createPassword
+		let item3 = "<h4 style='margin-left: 12px'>Select username</4e>"
+		playPanel.innerHTML += item3
+		let createEmail= "<input id='email' style='margin:12px;' type='text'><br>"
+		playPanel.innerHTML += createEmail
+		let createAccountBtn = "<button id='createAcctBtn' style='margin: 18px;'>Click To Create Account </button>"
+		playPanelStart.innerHTML += createAccountBtn
+	}
+
+	function postUserToDB(){
+		let userObj = {
+		 	username: document.getElementById("username").value,
+		 	password: document.getElementById("password").value,
+		 	email: document.getElementById("email").value,
+		}
+
+		fetch("http://localhost:3000/users",{
+			method: "POST",
+			headers: headersObj,
+			body: JSON.stringify(userObj)			
+		})
+	}
+
 }
 //CHOICES SCREEN END
 
@@ -111,7 +155,6 @@ function createChar(e){
 			if(stats[0]!=0 && total == 15){
 				submitCharToDB()
 				dungeonArea()
-				//postToDB()
 			}else{
 				alert("You appear to be missing something")
 			} 	
@@ -168,7 +211,6 @@ function createChar(e){
 	}
 
 	function submitCharToDB(){
-		console.log("charSubmit")
 		let charObj = {
 			name: stats[0],
 			style: stats[1],
@@ -209,7 +251,6 @@ function displayList(){
 	.then(charArray => charArray.forEach(char =>{
 		playPanelCharSelect.innerHTML += `<h2 id=${char.id} style='margin-left: 24px;'>${char.id}.${char.name}</h2'><h4 style='margin-left: 24px;'>${char.style} ${char.race} ${char.prof}</h4>`
 	}))
-	console.log("In displayList")
 }
 //DISPLAY CHARS LIST END
 
@@ -217,7 +258,30 @@ function displayList(){
 //This is where the dungeon area and major play mechanics will happen
 function dungeonArea(){
 	playPanel.innerHTML = " "
+	let horizontalOffset = 0
+	let verticalOffset = 0
+	let charPosLeft = 0
+	let charPosTop = 0
+	for( x = 0; x< 135; x++){
+		if(horizontalOffset <750){
+			dungeonPanel.innerHTML += `<div style="position: absolute; width: 50px; height: 50px; padding-left:${horizontalOffset}px; padding-top: ${verticalOffset}px"><img src="tile0000.png"></div>`
+			horizontalOffset +=50
+		}else{
+			verticalOffset += 50
+			horizontalOffset = 0
+			dungeonPanel.innerHTML += `<div style="position: absolute; width: 50px; height: 50px; padding-left:${horizontalOffset}px; padding-top: ${verticalOffset}px"><img src="tile0000.png"></div>`
+			horizontalOffset +=50
+		}
+	}
+
+	dungeonPanel.innerHTML += `<div id='me' style="position: absolute; width: 50px; height: 50px; padding-left:${charPosLeft}px; padding-top: ${charPosTop}px"><img src="smiley.png"></div>`
 }
+	const toon = document.getElementById("me")
+			
+function toonMovement(e){
+	console.log(e)   		    		
+}
+
 //DUNGEON AREA END
 
 //SELECT CHAR SCREEN START
@@ -243,9 +307,24 @@ function selectChar(e){
 				stats[6] = char["fort"]
 				stats[7] = char["wis"]
 				setStats();
+				dungeonArea()
 			}
 		}))
 		//setStats();
 	}
 }
 //SELECT CHAAR SCREEN END
+
+//CREATE ENEMY MONSTER START
+class enemyMonster{
+	constructor(name, style, race, prof){
+		this.name = name;
+		this.style = style;
+		this.race = race;
+		this.prof = prof;
+	}
+}
+//CREATE ENEMY MONSTER END
+
+
+
